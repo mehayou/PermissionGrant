@@ -21,30 +21,47 @@ PermissionGrant mPermissionGrant = new PermissionGrant(this);
 // 申请授权
 mPermissionGrant.request(requestCode,
         new PermissionGrant.Callback() {
+            /**
+             * 授权成功
+             * @param requestCode 请求码
+             */
             @Override
-            public void onPermissionGranted(int requestCode, List<String> granted) {
+            public void onPermissionGranted(int requestCode) {
                 // TODO 权限授权成功，执行授权后的操作
             }
 
+            /**
+             * 授权失败
+             * @param requestCode 请求码
+             * @param denied      授权被拒的权限（包含被拒且不再询问的权限）
+             * @param rationale   当且仅当权限授权被拒且不再询问时返回
+             */
             @Override
-            public void onPermissionDenied(int requestCode, List<String> granted, List<String> denied) {
-                // TODO 权限授权失败，可弹窗提示，或忽略
-            }
-        },
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
-);
-```
-或者忽略授权失败，只回调授权成功
-```java
-// 实例化
-PermissionGrant mPermissionGrant = new PermissionGrant(this);
-// 申请授权
-mPermissionGrant.request(requestCode,
-        new PermissionGrant.GrantedCallback() {
-            @Override
-            public void onPermissionGranted(int requestCode, List<String> granted) {
-                // TODO 权限授权成功，执行授权后的操作
+            public void onPermissionDenied(int requestCode, List<String> denied, List<String> rationale) {
+                // TODO 权限授权失败。当且仅当授权被拒且不再询问时，需要弹窗提示
+                if (rationale != null) {
+                    // TODO 弹窗提示被拒，需要前往应用设置手动打开相应权限，示例如下，自行完善：
+                    Context context = MainActivity.this;
+                    AlertDialog dialog = new AlertDialog.Builder(context).create();
+                    dialog.setTitle("授权失败");
+                    dialog.setMessage("权限被禁用，是否前往应用设置打开权限！");
+                    dialog.setButton(BUTTON_NEGATIVE, context.getString(android.R.string.cancel),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel();
+                                }
+                            });
+                    dialog.setButton(BUTTON_POSITIVE, context.getString(android.R.string.ok),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // 前往应用设置页面
+                                    mPermissionGrant.toSettings();
+                                }
+                            });
+                    dialog.show();
+                }
             }
         },
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
